@@ -8,11 +8,36 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght=500;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Quicksand', sans-serif; touch-action: none; user-select: none; margin: 0; padding: 0; }
-        .bg-pattern {
+        body { 
+            font-family: 'Quicksand', sans-serif; 
+            touch-action: none; 
+            user-select: none; 
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            margin: 0; 
+            padding: 0; 
+            background: #0f172a; /* Background gelap di luar area 16:9 jika layar terlalu kotak/tinggi */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- WRAPPER UTAMA RASIO PROPORSONAL 16:9 (LANDSCAPE) --- */
+        .app-container {
+            width: 100vw;
+            height: 100vh;
+            max-width: 177.78vh; /* 100 * 16 / 9 = 177.78 */
+            max-height: 56.25vw; /* 100 * 9 / 16 = 56.25 */
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
             background-color: #f0f9ff;
             background-image: url(Assets/bg.png);
             background-size: cover;
+            background-position: center;
         }
         
         .btn-fancy {
@@ -32,29 +57,27 @@
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
             width: 100%;
-            max-width: 720px;
             padding: 10px 20px 20px 20px;
-            gap: 12px;
+            gap: 16px;
+            scrollbar-width: none;
         }
         .category-slider::-webkit-scrollbar, .gallery-slider::-webkit-scrollbar {
             display: none;
         }
         
         .category-item, .gallery-item {
-            flex: 0 0 calc(25% - 8px);
-            height: 100px;
+            flex: 0 0 calc(25% - 12px);
+            height: 140px;
             scroll-snap-align: start;
         }
 
-        /* --- DESAIN KHUSUS GAME LANDSCAPE MOBILE (Full Viewport) --- */
+        /* --- DESAIN EDITOR SESUAI RASIO 16:9 LANDSCAPE --- */
         .game-viewport {
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
             background: white;
-            border: none;
             position: relative;
             overflow: hidden;
-            box-shadow: none;
         }
 
         #canvasFrame {
@@ -75,12 +98,12 @@
             position: absolute;
         }
 
-        /* Palet Spidol Mengambang Bisa Scroll Vertikal */
+        /* Palet Spidol Mengambang Kiri (Scroll Vertikal) */
         .marker-palette-container {
             position: absolute;
             left: 0;
             top: 10px;
-            bottom: 20px;
+            bottom: 10px;
             width: 110px;
             overflow-y: auto;
             overflow-x: hidden;
@@ -99,7 +122,7 @@
             padding: 10px 0;
         }
 
-        /* Desain Pensil Warna Realistis */
+        /* Desain Pensil Warna Menghadap Kanan (Asli) */
         .marker {
             width: 75px;
             height: 34px;
@@ -143,7 +166,7 @@
             box-shadow: 4px 4px 10px rgba(0,0,0,0.35);
         }
 
-        /* Tombol Utilitas Mengambang (Sisi Kanan) - Diperbanyak untuk Zoom & Fit */
+        /* Tombol Utilitas Mengambang Sisi Kanan */
         .utility-palette {
             position: absolute;
             right: 16px;
@@ -155,8 +178,8 @@
         }
 
         .btn-game {
-            width: 46px;
-            height: 46px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             border: none;
             background: white;
@@ -173,229 +196,164 @@
         .btn-undo { background: #6b7280; color: white; }
         .btn-reset { background: #f97316; color: white; }
         .btn-save { background: #22c55e; color: white; }
-        
-        /* Tombol Fit & Zoom Baru */
         .btn-zoom-in { background: #ec4899; color: white; }
         .btn-zoom-out { background: #a855f7; color: white; }
         .btn-fit { background: #14b8a6; color: white; }
-
-        .status-overlay {
-            position: absolute;
-            top: 12px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 20;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(4px);
-            pointer-events: none;
-        }
     </style>
 </head>
-<body class="bg-pattern min-h-screen flex items-center justify-center">
+<body>
 
-    <div id="pageHome" class="flex flex-col items-center p-6 w-full overflow-hidden">
-        <p class="text-gray-600 mb-2 font-bold flex items-center gap-2" style="margin-top: 160px; font-size: 1.5rem;">
-            PILIH KATEGORI <i class="fas fa-angles-right text-sm animate-pulse text-gray-400"></i>
-        </p>
-        
-        <div class="category-slider">
-            <div class="category-item">
-                <button onclick="showGallery('binatang')" class="w-full bg-yellow-400 p-6 rounded-3xl btn-fancy text-white text-center">
-                    <i class="fas fa-paw text-4xl mb-2"></i><br>BINATANG
-                </button>
-            </div>
-            <div class="category-item">
-                <button onclick="showGallery('kendaraan')" class="w-full bg-blue-400 p-6 rounded-3xl btn-fancy text-white text-center">
-                    <i class="fas fa-car text-4xl mb-2"></i><br>KENDARAAN
-                </button>
-            </div>
-            <div class="category-item">
-                <button onclick="showGallery('buah')" class="w-full bg-green-400 p-6 rounded-3xl btn-fancy text-white text-center">
-                    <i class="fas fa-apple-whole text-4xl mb-2"></i><br>BUAH
-                </button>
-            </div>
-            <div class="category-item">
-                <button onclick="showGallery('fantasi')" class="w-full bg-purple-400 p-6 rounded-3xl btn-fancy text-white text-center">
-                    <i class="fas fa-wand-magic-sparkles text-4xl mb-2"></i><br>FANTASI
-                </button>
-            </div>
-        </div>
-    </div>
+    <!-- CONTAINER UTAMA 16:9 LANDSCAPE -->
+    <div class="app-container">
 
-    <div id="pageGallery" class="hidden flex flex-col items-center p-6 w-full overflow-hidden">
-        <div class="flex items-center justify-content-center max-w-md mb-2" style="margin-top: 160px;">
-            <button onclick="goHome()" class="bg-white/80 backdrop-blur-sm p-3 rounded-full mr-4 shadow-sm text-gray-700"><i class="fas fa-arrow-left"></i></button>
-            <h2 id="galleryTitle" class="text-2xl font-bold text-gray-800 uppercase drop-shadow-sm">Pilih Gambar</h2>
-        </div>
-        
-        <div id="imageList" class="gallery-slider"></div>
-    </div>
-
-    <div id="pageEditor" class="hidden w-full h-full m-0 p-0">
-        <div class="game-viewport">
+        <!-- SCREEN 1: HOME -->
+        <div id="pageHome" class="flex flex-col items-center justify-center h-full w-full p-6">
+            <div style="height: 180px;"></div>
+            <p class="text-gray-600 mb-2 font-bold flex items-center gap-2 text-lg">
+                PILIH KATEGORI <i class="fas fa-angles-right text-sm animate-pulse text-gray-400"></i>
+            </p>
             
-            <div class="marker-palette-container">
-                <div class="marker-palette" id="palette"></div>
+            <div class="category-slider">
+                <div class="category-item">
+                    <button onclick="showGallery('binatang')" class="w-full h-full bg-yellow-400 p-4 rounded-3xl btn-fancy text-white text-center flex flex-col items-center justify-center">
+                        <i class="fas fa-paw text-3xl mb-1"></i><span class="font-bold text-sm">BINATANG</span>
+                    </button>
+                </div>
+                <div class="category-item">
+                    <button onclick="showGallery('kendaraan')" class="w-full h-full bg-blue-400 p-4 rounded-3xl btn-fancy text-white text-center flex flex-col items-center justify-center">
+                        <i class="fas fa-car text-3xl mb-1"></i><span class="font-bold text-sm">KENDARAAN</span>
+                    </button>
+                </div>
+                <div class="category-item">
+                    <button onclick="showGallery('buah')" class="w-full h-full bg-green-400 p-4 rounded-3xl btn-fancy text-white text-center flex flex-col items-center justify-center">
+                        <i class="fas fa-apple-whole text-3xl mb-1"></i><span class="font-bold text-sm">BUAH</span>
+                    </button>
+                </div>
+                <div class="category-item">
+                    <button onclick="showGallery('fantasi')" class="w-full h-full bg-purple-400 p-4 rounded-3xl btn-fancy text-white text-center flex flex-col items-center justify-center">
+                        <i class="fas fa-wand-magic-sparkles text-3xl mb-1"></i><span class="font-bold text-sm">FANTASI</span>
+                    </button>
+                </div>
             </div>
-
-            <div class="utility-palette">
-                <button onclick="backToGallery()" class="btn-game btn-home" title="Kembali ke Galeri"><i class="fas fa-home"></i></button>
-                <button onclick="undo()" class="btn-game btn-undo" title="Undo"><i class="fas fa-rotate-left"></i></button>
-                <button onclick="resetCanvas()" class="btn-game btn-reset" title="Reset Gambar"><i class="fas fa-trash"></i></button>
-                
-                <button onclick="zoomIn()" class="btn-game btn-zoom-in" title="Perbesar"><i class="fas fa-magnifying-glass-plus"></i></button>
-                <button onclick="zoomOut()" class="btn-game btn-zoom-out" title="Perkecil"><i class="fas fa-magnifying-glass-minus"></i></button>
-                <button onclick="zoomFit()" class="btn-game btn-fit" title="Pas Layar"><i class="fas fa-expand"></i></button>
-                
-                <button onclick="saveImage()" class="btn-game btn-save" title="Simpan Gambar"><i class="fas fa-download"></i></button>
-            </div>
-
-            <div id="canvasFrame">
-                <canvas id="paintCanvas"></canvas>
-            </div>
-
         </div>
+
+        <!-- SCREEN 2: GALLERY -->
+        <div id="pageGallery" class="hidden flex flex-col justify-center h-full w-full p-6">
+            <div style="height: 200px;"></div>
+            <div class="flex items-center mb-4 max-w-md">
+                <button onclick="goHome()" class="bg-white/90 p-3 rounded-full mr-4 shadow-sm text-gray-700"><i class="fas fa-arrow-left"></i></button>
+                <h2 id="galleryTitle" class="text-2xl font-bold text-gray-800 uppercase drop-shadow-sm">Pilih Gambar</h2>
+            </div>
+            
+            <div id="imageList" class="gallery-slider"></div>
+        </div>
+
+        <!-- SCREEN 3: EDITOR CANVAS -->
+        <div id="pageEditor" class="hidden w-full h-full m-0 p-0">
+            <div class="game-viewport">
+                
+                <!-- Palet Spidol Mengambang Kiri -->
+                <div class="marker-palette-container">
+                    <div class="marker-palette" id="palette"></div>
+                </div>
+
+                <!-- Tombol Kontrol Kanan -->
+                <div class="utility-palette">
+                    <button onclick="backToGallery()" class="btn-game btn-home" title="Kembali ke Galeri"><i class="fas fa-home"></i></button>
+                    <button onclick="undo()" class="btn-game btn-undo" title="Undo"><i class="fas fa-rotate-left"></i></button>
+                    <button onclick="resetCanvas()" class="btn-game btn-reset" title="Reset Gambar"><i class="fas fa-trash"></i></button>
+                    
+                    <button onclick="zoomIn()" class="btn-game btn-zoom-in" title="Perbesar"><i class="fas fa-magnifying-glass-plus"></i></button>
+                    <button onclick="zoomOut()" class="btn-game btn-zoom-out" title="Perkecil"><i class="fas fa-magnifying-glass-minus"></i></button>
+                    <button onclick="zoomFit()" class="btn-game btn-fit" title="Pas Layar"><i class="fas fa-expand"></i></button>
+                    
+                    <button onclick="saveImage()" class="btn-game btn-save" title="Simpan Gambar"><i class="fas fa-download"></i></button>
+                </div>
+
+                <!-- Area Canvas Utama -->
+                <div id="canvasFrame">
+                    <canvas id="paintCanvas"></canvas>
+                </div>
+
+            </div>
+        </div>
+
     </div>
 
     <script>
+        // --- SECURE SYSTEM: BLOKIR KLIK KANAN, SELECT, COPY ---
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('selectstart', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'c' || e.key === 'u' || e.key === 's' || e.key === 'a') {
+                    e.preventDefault();
+                }
+            }
+            if (e.key === 'F12') e.preventDefault();
+        });
+
         const library = {
             binatang: [
-                "Assets/Binatang/anjing.png",
-                "Assets/Binatang/ayam.png",
-                "Assets/Binatang/bebek.png",
-                "Assets/Binatang/burung.png",
-                "Assets/Binatang/gajah.png",
-                "Assets/Binatang/harimau.png",
-                "Assets/Binatang/ikan.png",
-                "Assets/Binatang/itik.png",
-                "Assets/Binatang/kelinci.png",
-                "Assets/Binatang/kucing.png",
-                "Assets/Binatang/kupu-kupu.jpg",
-                "Assets/Binatang/monyet.png",
-                "Assets/Binatang/sapi.png",
-                "Assets/Binatang/singa.png",
+                "Assets/Binatang/anjing.png", "Assets/Binatang/ayam.png", "Assets/Binatang/burung.png",
+                "Assets/Binatang/gajah.png", "Assets/Binatang/ikan.png", "Assets/Binatang/itik.png",
+                "Assets/Binatang/kelinci.png", "Assets/Binatang/kucing.png", "Assets/Binatang/kupu-kupu.jpg",
+                "Assets/Binatang/monyet.png", "Assets/Binatang/sapi.png", "Assets/Binatang/singa.png"
             ],
             kendaraan: [
-                "Assets/Kendaraan/helikopter.png",
-                "Assets/Kendaraan/kapallaut.png",
-                "Assets/Kendaraan/keretaapi.png",
-                "Assets/Kendaraan/mobil.png",
-                "Assets/Kendaraan/motor.png",
-                "Assets/Kendaraan/pesawat.png",
-                "Assets/Kendaraan/sepeda.png",
+                "Assets/Kendaraan/helikopter.png", "Assets/Kendaraan/kapallaut.png", "Assets/Kendaraan/keretaapi.png",
+                "Assets/Kendaraan/mobil.png", "Assets/Kendaraan/motor.png", "Assets/Kendaraan/pesawat.png",
+                "Assets/Kendaraan/sepeda.png"
             ],
-            buah: [
-                "Assets/Buah/apple.png", 
-                "Assets/Buah/orange.png", 
-                "Assets/Buah/banana.jpg"
-            ],
-            profesi: [
-                "Assets/Profesi/dokter.png", 
-                "Assets/Profesi/guru.png",
-                "Assets/Profesi/petani.png",
-                "Assets/Profesi/pilot.png",
-            ]
+            buah: ["Assets/Buah/apple.png", "Assets/Buah/orange.png", "Assets/Buah/banana.jpg"],
+            fantasi: ["Assets/Fantasi/merak.jpg", "Assets/Fantasi/unicorn.png"]
         };
 
         const canvas = document.getElementById('paintCanvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         
-        let selectedColor = '#FF3B30'; // Default merah terang anak-anak
+        let selectedColor = '#FF3B30';
         let undoStack = [];
         let currentCategory = '';
         let currentImgUrl = '';
 
-        // Variabel Transformasi Kanvas
         let scale = 1;
         let baseScale = 1;
-        let panX = 0;
-        let panY = 0;
-        let startPanX = 0;
-        let startPanY = 0;
+        let panX = 0; let panY = 0;
+        let startPanX = 0; let startPanY = 0;
         let isDragging = false;
         let evCache = [];
         let prevDiff = -1;
 
         let originalOutlineCanvas = null;
-        let texturePatternCanvas = null; // Canvas bantuan pola krayon
+        let texturePatternCanvas = null;
 
-        // Palet warna cerah populer yang paling sering digunakan anak-anak
-// Palet warna yang lengkap dan bervariasi untuk anak-anak
         const colors = [
-            // --- WARNA UTAMA & GARIS ---
-            '#000000', // Hitam
-            '#FFFFFF', // Putih
-            '#8E8E93', // Kelabu Abu
-            '#AEAEB2', // Kelabu Cerah
-
-            // --- MERAH & MERAH JAMBU (POPULER) ---
-            '#FF0000', // Merah Terang
-            '#FF2D55', // Merah Stroberi
-            '#E60067', // Magenta / Fuksia
-            '#FF6B8B', // Merah Jambu Sederhana
-            '#FFB3BA', // Pink Pastel
-
-            // --- JINGGA & KUNING ---
-            '#FF9500', // Jingga / Oren
-            '#FFA726', // Oren Oren Lemon
-            '#FFCC00', // Kuning Pisang
-            '#FFE082', // Kuning Jagung Cerah
-            '#FFFFBA', // Kuning Pastel
-
-            // --- HIJAU (ALAM & DAUN) ---
-            '#4CD964', // Hijau Epal
-            '#2E7D32', // Hijau Daun Tua
-            '#81C784', // Hijau Rumput Sederhana
-            '#A5D6A7', // Hijau Lumut Muda
-            '#BAFFC9', // Hijau Pastel Mint
-
-            // --- BIRU (LANGIT & LAUT) ---
-            '#007AFF', // Biru Diraja (Royal Blue)
-            '#5AC8FA', // Biru Sian / Langit Cerah
-            '#1E88E5', // Biru Samudra
-            '#90CAF9', // Biru Air Muda
-            '#BAE1FF', // Biru Pastel
-
-            // --- UNGU & FANTASI ---
-            '#5856D6', // Ungu Indigo
-            '#AF52DE', // Ungu Terang
-            '#CE93D8', // Ungu Lavender Muda
-            '#E1BEE7', // Ungu Pastel Orchid
-
-            // --- TON KULIT, KAYU & TANAH ---
-            '#FFDFBA', // Kulit Cerah / Pastel Peach
-            '#E8C48F', // Kulit Langsat / Krim Tat
-            '#CD853F', // Cokelat Muda / Karamel
-            '#965A38', // Cokelat Kayu / Pagar
-            '#4A2E1B', // Cokelat Tanah Tua
-
-            // --- WARNA ALAM TAMBAHAN ---
-            '#224D17', // Hijau Hutan Gelap
-            '#122640', // Biru Malam Pekat (Midnight Blue)
-            '#631627', // Merah Manggis Tua (Maroon)
-            '#008080'  // Hijau Toska / Teal
+            '#000000', '#FFFFFF', '#8E8E93', '#AEAEB2',
+            '#FF0000', '#FF2D55', '#E60067', '#FF6B8B', '#FFB3BA',
+            '#FF9500', '#FFA726', '#FFCC00', '#FFE082', '#FFFFBA',
+            '#4CD964', '#2E7D32', '#81C784', '#A5D6A7', '#BAFFC9',
+            '#007AFF', '#5AC8FA', '#1E88E5', '#90CAF9', '#BAE1FF',
+            '#5856D6', '#AF52DE', '#CE93D8', '#E1BEE7',
+            '#FFDFBA', '#E8C48F', '#CD853F', '#965A38', '#4A2E1B',
+            '#224D17', '#122640', '#631627', '#008080'
         ];
-        // --- UPDATE: Fungsi membuat tekstur goresan krayon secara dinamis ---
+
         function createCrayonTexture(hexColor) {
             const texCanvas = document.createElement('canvas');
-            // Ukuran tile krayon kecil agar goresan terlihat padat
-            texCanvas.width = 64; 
-            texCanvas.height = 64;
+            texCanvas.width = 64; texCanvas.height = 64;
             const tCtx = texCanvas.getContext('2d');
             
-            // Berikan warna dasar transparan agak pudar (tidak memblokir total)
             tCtx.fillStyle = hexColor;
             tCtx.globalAlpha = 0.82; 
             tCtx.fillRect(0, 0, 64, 64);
             
-            // Tambahkan goresan-goresan serat pensil/krayon acak
             const rgb = hexToRgb(hexColor);
             for (let i = 0; i < 450; i++) {
                 const x = Math.random() * 64;
                 const y = Math.random() * 64;
                 const radius = 0.4 + Math.random() * 0.8;
                 
-                // Variasi gelap terang butiran krayon
                 const isDark = Math.random() > 0.5;
                 const offset = Math.floor(Math.random() * 25);
                 const r = isDark ? Math.max(0, rgb.r - offset) : Math.min(255, rgb.r + offset);
@@ -411,7 +369,6 @@
             return texCanvas;
         }
 
-        // 1. NAVIGASI
         function showGallery(cat) {
             currentCategory = cat;
             document.getElementById('pageHome').classList.add('hidden');
@@ -427,7 +384,7 @@
                     
                     const item = document.createElement('div');
                     item.className = "bg-white p-4 rounded-3xl shadow-md border-4 border-transparent hover:border-blue-400 cursor-pointer transition flex items-center justify-center h-full";
-                    item.innerHTML = `<img src="${url}" class="w-full max-h-full object-contain" onerror="this.src='https://placehold.co/150?text=Gambar+Lokal'">`;
+                    item.innerHTML = `<img src="${url}" class="w-full max-h-full object-contain pointer-events-none" onerror="this.src='https://placehold.co/150?text=Gambar'">`;
                     item.onclick = () => startColoring(url);
                     
                     itemWrapper.appendChild(item);
@@ -447,7 +404,6 @@
             document.getElementById('pageGallery').classList.remove('hidden');
         }
 
-        // 2. LOGIKA EDITOR & DOCKING CANVAS
         let imgWidth = 0, imgHeight = 0;
 
         function startColoring(url) {
@@ -458,8 +414,9 @@
             const img = new Image();
             img.src = url;
             img.onload = () => {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
+                const frame = document.getElementById('canvasFrame');
+                canvas.width = frame.clientWidth;
+                canvas.height = frame.clientHeight;
                 
                 ctx.fillStyle = "white";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -472,27 +429,10 @@
                 originalOutlineCanvas = document.createElement('canvas');
                 originalOutlineCanvas.width = canvas.width;
                 originalOutlineCanvas.height = canvas.height;
-                const oCtx = originalOutlineCanvas.getContext('2d');
-                oCtx.drawImage(canvas, 0, 0);
+                originalOutlineCanvas.getContext('2d').drawImage(canvas, 0, 0);
 
                 undoStack = [];
                 saveState(); 
-
-                zoomFit(); // Set default tampilan langsung pas layar
-            };
-            img.onerror = () => {
-                // Skenario aman jika gambar lokal di aset belum diletakkan fisik
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-                ctx.fillStyle = "white";
-                ctx.fillRect(0,0,canvas.width, canvas.height);
-                ctx.fillStyle = "#333";
-                ctx.font = "20px Quicksand";
-                ctx.fillText("Silakan simpan berkas gambar di folder Assets kamu!", 50, canvas.height/2);
-                originalOutlineCanvas = document.createElement('canvas');
-                originalOutlineCanvas.width = canvas.width;
-                originalOutlineCanvas.height = canvas.height;
-                originalOutlineCanvas.getContext('2d').drawImage(canvas, 0, 0);
                 zoomFit();
             };
         }
@@ -501,35 +441,16 @@
             canvas.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
         }
 
-        // --- UPDATE: Fungsi Pengontrol Zoom & Fit Screen Terarah ---
-        function zoomIn() {
-            scale = Math.min(scale + 0.25, 4.0);
-            applyTransform();
-        }
+        function zoomIn() { scale = Math.min(scale + 0.25, 4.0); applyTransform(); }
+        function zoomOut() { scale = Math.max(scale - 0.25, 0.6); applyTransform(); }
+        function zoomFit() { scale = 1; panX = 0; panY = 0; applyTransform(); }
 
-        function zoomOut() {
-            scale = Math.max(scale - 0.25, 0.6);
-            applyTransform();
-        }
-
-        function zoomFit() {
-            scale = 1;
-            panX = 0;
-            panY = 0;
-            applyTransform();
-        }
-
-        // 3. POINTER EVENT TRACKING
         const frame = document.getElementById('canvasFrame');
-
         frame.addEventListener('pointerdown', (e) => {
             evCache.push(e);
-            if (evCache.length === 1) {
-                isDragging = false;
-            } else if (evCache.length === 2) {
+            if (evCache.length === 2) {
                 isDragging = true;
-                const p1 = evCache[0];
-                const p2 = evCache[1];
+                const p1 = evCache[0]; const p2 = evCache[1];
                 startPanX = ((p1.clientX + p2.clientX) / 2) - panX;
                 startPanY = ((p1.clientY + p2.clientY) / 2) - panY;
                 prevDiff = Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY);
@@ -543,18 +464,13 @@
 
             if (evCache.length === 2) {
                 isDragging = true;
-                const p1 = evCache[0];
-                const p2 = evCache[1];
-
-                const currentMidX = (p1.clientX + p2.clientX) / 2;
-                const currentMidY = (p1.clientY + p2.clientY) / 2;
-                panX = currentMidX - startPanX;
-                panY = currentMidY - startPanY;
+                const p1 = evCache[0]; const p2 = evCache[1];
+                panX = ((p1.clientX + p2.clientX) / 2) - startPanX;
+                panY = ((p1.clientY + p2.clientY) / 2) - startPanY;
 
                 const curDiff = Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY);
                 if (prevDiff > 0) {
-                    const pinScale = curDiff / prevDiff;
-                    scale = Math.min(Math.max(baseScale * pinScale, 0.6), 4.0);
+                    scale = Math.min(Math.max(baseScale * (curDiff / prevDiff), 0.6), 4.0);
                 }
                 applyTransform();
             }
@@ -563,21 +479,16 @@
         const handlePointerUp = (e) => {
             const index = evCache.findIndex((ev) => ev.pointerId === e.pointerId);
             if (index > -1) evCache.splice(index, 1);
-            if (evCache.length < 2) prevDiff = -1;
+            if (evCache.length < 2) { prevDiff = -1; setTimeout(() => isDragging = false, 50); }
         };
-
         frame.addEventListener('pointerup', handlePointerUp);
         frame.addEventListener('pointercancel', handlePointerUp);
-        frame.addEventListener('pointerleave', handlePointerUp);
 
-        // 4. MEWARNAI DENGAN PATTERN KRAYON / PENSIL WARNA
         canvas.addEventListener('click', (e) => {
             if (isDragging) return;
-
             const rect = canvas.getBoundingClientRect();
             const x = Math.floor((e.clientX - rect.left) * (canvas.width / rect.width));
             const y = Math.floor((e.clientY - rect.top) * (canvas.height / rect.height));
-
             floodFillPattern(x, y, selectedColor);
             saveState();
         });
@@ -586,33 +497,20 @@
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const oCtx = originalOutlineCanvas.getContext('2d');
             const originalData = oCtx.getImageData(0, 0, canvas.width, canvas.height);
-
             const targetColor = getPixelColor(imageData, startX, startY);
             
-            // Validasi deteksi: jika mengklik struktur garis hitam asli, langsung batalkan
             const originalColorAtStart = getPixelColor(originalData, startX, startY);
-            if (originalColorAtStart.r < 65 && originalColorAtStart.g < 65 && originalColorAtStart.b < 65) {
-                return; 
-            }
+            if (originalColorAtStart.r < 65 && originalColorAtStart.g < 65 && originalColorAtStart.b < 65) return;
 
-            // Membuat pola krayon khusus berdasarkan warna spidol yang sedang aktif
             texturePatternCanvas = createCrayonTexture(colorHex);
-            const tCtx = texturePatternCanvas.getContext('2d');
-            const patternData = tCtx.getImageData(0, 0, 64, 64);
-
+            const patternData = texturePatternCanvas.getContext('2d').getImageData(0, 0, 64, 64);
             const pixelsToCheck = [startX, startY];
             const filledPixels = [];
-
-            // Objek bantuan tanda periksa koordinat agar memori efisien
             const visited = new Uint8Array(canvas.width * canvas.height);
 
-            // --- Langkah 1: Pengumpulan area Floodfill secara spasial ---
             while (pixelsToCheck.length > 0) {
-                const y = pixelsToCheck.pop();
-                const x = pixelsToCheck.pop();
-
+                const y = pixelsToCheck.pop(); const x = pixelsToCheck.pop();
                 if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) continue;
-
                 const idx = y * canvas.width + x;
                 if (visited[idx]) continue;
 
@@ -622,56 +520,15 @@
                 if (colorsMatch(currentColor, targetColor) && !(origColor.r < 65 && origColor.g < 65 && origColor.b < 65)) {
                     visited[idx] = 1;
                     filledPixels.push({x, y});
-
                     pixelsToCheck.push(x + 1, y, x - 1, y, x, y + 1, x, y - 1);
                 }
             }
 
-            // --- Langkah 2: Proses Penulisan Tekstur Krayon ke Koordinat Area ---
             filledPixels.forEach(p => {
-                // Petakan koordinat kanvas global ke koordinat ubin krayon (64x64) secara berulang (tiling)
-                const tx = ((p.x % 64) + 64) % 64;
-                const ty = ((p.y % 64) + 64) % 64;
+                const tx = ((p.x % 64) + 64) % 64; const ty = ((p.y % 64) + 64) % 64;
                 const pIdx = (ty * 64 + tx) * 4;
-
-                const fillRgb = {
-                    r: patternData.data[pIdx],
-                    g: patternData.data[pIdx+1],
-                    b: patternData.data[pIdx+2]
-                };
-
-                setPixelColor(imageData, p.x, p.y, fillRgb);
+                setPixelColor(imageData, p.x, p.y, { r: patternData.data[pIdx], g: patternData.data[pIdx+1], b: patternData.data[pIdx+2] });
             });
-
-            // --- Langkah 3: Ekspansi Radius Halus Tepi Garis (Dilation) ---
-            const expandPx = 0.0;
-            for (let step = 0; step < expandPx; step++) {
-                const currentLength = filledPixels.length;
-                for (let i = 0; i < currentLength; i++) {
-                    const p = filledPixels[i];
-                    const neighbors = [{x:p.x+1, y:p.y}, {x:p.x-1, y:p.y}, {x:p.x, y:p.y+1}, {x:p.x, y:p.y-1}];
-
-                    neighbors.forEach(n => {
-                        if (n.x >= 0 && n.y >= 0 && n.x < canvas.width && n.y < canvas.height) {
-                            const nIdx = n.y * canvas.width + n.x;
-                            if (!visited[nIdx]) {
-                                const nOrigColor = getPixelColor(originalData, n.x, n.y);
-                                if (!(nOrigColor.r < 50 && nOrigColor.g < 50 && nOrigColor.b < 50)) {
-                                    const tx = ((n.x % 64) + 64) % 64;
-                                    const ty = ((n.y % 64) + 64) % 64;
-                                    const pIdx = (ty * 64 + tx) * 4;
-
-                                    setPixelColor(imageData, n.x, n.y, {
-                                        r: patternData.data[pIdx],
-                                        g: patternData.data[pIdx+1],
-                                        b: patternData.data[pIdx+2]
-                                    });
-                                }
-                            }
-                        }
-                    });
-                }
-            }
 
             ctx.putImageData(imageData, 0, 0);
         }
@@ -684,13 +541,9 @@
 
         function setPixelColor(imgData, x, y, color) {
             const i = (y * imgData.width + x) * 4;
-            imgData.data[i] = color.r;
-            imgData.data[i+1] = color.g;
-            imgData.data[i+2] = color.b;
-            imgData.data[i+3] = 255;
+            imgData.data[i] = color.r; imgData.data[i+1] = color.g; imgData.data[i+2] = color.b; imgData.data[i+3] = 255;
         }
 
-        // Ditambah sedikit toleransinya agar penimpaan antar butir krayon yang berbeda intensitas tetap mulus
         function colorsMatch(c1, c2) {
             return Math.abs(c1.r - c2.r) < 60 && Math.abs(c1.g - c2.g) < 60 && Math.abs(c1.b - c2.b) < 60;
         }
@@ -700,43 +553,34 @@
             return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : null;
         }
 
-        // 5. UNDO, RESET, & SIMPAN
         function saveState() {
             if (undoStack.length >= 10) undoStack.shift();
             undoStack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
         }
 
         function undo() {
-            if (undoStack.length > 1) {
-                undoStack.pop();
-                ctx.putImageData(undoStack[undoStack.length - 1], 0, 0);
-            }
+            if (undoStack.length > 1) { undoStack.pop(); ctx.putImageData(undoStack[undoStack.length - 1], 0, 0); }
         }
 
-        function resetCanvas() {
-            startColoring(currentImgUrl);
-        }
+        function resetCanvas() { startColoring(currentImgUrl); }
 
         function saveImage() {
             const link = document.createElement('a');
-            link.download = 'hasil-krayon-anak.png';
+            link.download = 'hasil-mewarnai.png';
             link.href = canvas.toDataURL('image/png');
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
 
-        // 6. INISIALISASI PALET WARNA POPULER
         const paletteEl = document.getElementById('palette');
         colors.forEach((c, idx) => {
             const btn = document.createElement('div');
-            btn.className = "marker" + (idx === 0 ? " active" : "");
+            btn.className = "marker" + (idx === 4 ? " active" : ""); 
+            if(idx === 4) selectedColor = c;
             btn.style.backgroundColor = c;
             btn.style.setProperty('--marker-color', c); 
-            btn.onclick = () => {
-                selectedColor = c;
-                highlightPalette(btn);
-            };
+            btn.onclick = () => { selectedColor = c; highlightPalette(btn); };
             paletteEl.appendChild(btn);
         });
 
